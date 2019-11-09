@@ -1,17 +1,22 @@
 # AsyncServletVertx-Bridge (not ready for production)
-This repository may be useful when integrating Vert.x (via the EventBus) in an existing servlet-based application.  Http traffic passes through the servlet's http connection.
-
-This packages provides a few small classes and utility methods to pass a message from a servlet to a vert.x EventBus, and then send the EventBus reply back through the servlet's original Http connection.  Using Servlet AsyncContext, this all happens minimizing the number of threads and not keeping a servlet thread blocking the entire time.
+This repository may be useful when integrating Vert.x (via the EventBus) to an existing servlet-based application.  Requests are passed form a servlet, to the Vertx EventBus, and then back through the servlet's http connection. Using Servlet AsyncContext, this all happens minimizing the number of threads and not keeping a servlet thread blocking the entire time.
 
 
 **Dependencies and Usage:** 
 
-To use these classes, download ServletVertxBridge.jar from the bin directory of this repository:  https://github.com/AdamMcM/AsyncServletVertx-Bridge/blob/master/bin/ServletVertxBridge.jar.  To use the jar file, you will need the minimum Vert.x jars on your class path, along with the libaries typically found in a servlet app.  For example, if you are using tomcat, put ServletVertxBridge.jar into your WEB-INF/lib folder, along with the rest of the Vert.x jar files.
+To use these classes, download ServletVertxBridge.jar from the dist directory of this repository:  https://github.com/AdamMcM/ServletVertxBridge/blob/master/dist/ServletVertxBridge.jar.  To use the jar file, you will need the minimum Vert.x jars on your class path, along with the libaries typically found in a servlet app.  For example, if you are using tomcat, put ServletVertxBridge.jar into your WEB-INF/lib folder, along with the rest of the Vert.x jar files.
 
 
 # Examples
 
 The following code snippets assume a servlet with asyncSupported = true
+
+There are two main ways to use this bridge: by using the static mehod asyncPassByParams() or by building and isntance of AsyncServletBridge. We will consider each method:
+
+[1] asyncPassByParams(Vertx vertx, HttpServletRequest request, HttpServletResponse response)
+
+Use the above static method to send a route/message from a servlet to a vertx EventBus using the servlet request parameters "route" and "message".  The reply from the EventBus is sent back to the servlet's HttpConnection unmodified as a string.
+
 
 
 
