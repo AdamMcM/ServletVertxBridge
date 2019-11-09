@@ -20,39 +20,32 @@ Use the static method AsyncServletBridge.asyncPassByParams() to send a route/mes
 For example, in an async servlet, you could using the following call to 
 
 ```
-AsyncServletBridge.asyncPassByParams(vertx, request, response);
-```
-
-1. Instance of AsyncServletBridge
-
-A more flexible 
-
-```
 import import org.vertxservlet.*;
 
 ...
-...
 
-  // inside a servlet's process method
+Vertx vertx = getMyVertxInstance() // get your Vertx instance
+AsyncServletBridge.asyncPassByParams(vertx, servletRequest, servletRequest);
+```
+
+2. Instance of AsyncServletBridge
+
+A more flexible way to bridge between a servlet and vertx is to create an instance of AsyncServletBridge. Creating an instance allows one to spcify the route and messsage (as opposed to automatically routed from the servlet request paramters).  It also provides a handler that is called before sending the response back to the client.  This handler provides an opportunity to format/modify the reply sent from the EventBus before sening back to the client.
+
+Typical usage might look like this:
+
+```
+  import import org.vertxservlet.*;
   
-  Vertx vertx = getMyVertxInstance) // get your Vertx instance
+  Vertx vertx = getMyVertxInstance() // get your Vertx instance
   
   AsyncServletBridge asb = new AsyncServletBridge(vertx, servletRequest, servletResponse);
-  
-  // send a messagse down the Vertx EventBus with a route and message. the EventBus's reply is captured in a BiFunction handler
-  // calling asyncSend will "start" the async Context
-  
-  asb.asyncSend("myRoute", "messageContent", (asyncWriter, replyBody) -> {
-    // this handler is executed with a Vertx execute blocking thread.
-    // asyncWriter is an instance of AsyncWriter. This class writes down through the servlet's orignal httpConnection
-    // the String replyBody is the String sent as a reply on the EventBus route
-   
+  asb.asyncSend("myRoute", "messageContent", (asyncWriter, replyBody) -> {  
     // if necessary, format the output before sending back to teh client. 
     String finalOutput = replyBody + ", modified before sending";
-    
-    // AsyncWriter.writeAndComplete() will write, flush, and close 
-    // the http connection.  It will also complete the servlet async context
     asyncWriter.writeAndComplete(finalOutput);
   });
   
-```
+  ```
+
+
