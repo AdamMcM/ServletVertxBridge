@@ -1,0 +1,1 @@
+xcopy C:\Users\adams\Documents\NetBeansProjects\ServletVertxBridge\dist\javadoc C:\Users\adams\Documents\NetBeansProjects\ServletVertxBridge\docs\javadoc

@@ -32,7 +32,7 @@ public class AsyncServletBridge {
      * @param message the message sent along the route
      */
     public void asyncSend(String route, String message) {
-        AsyncServletUtils.send(this.vertx, request, response, route, message, (aWriter, body) -> {
+        AsyncServletBridge.send(this.vertx, request, response, route, message, (aWriter, body) -> {
             aWriter.writeAndComplete(body);
         });
     }
@@ -55,14 +55,70 @@ public class AsyncServletBridge {
      * @param route the route for the EventBus
      * @param message the message sent along the route
      * @param handler  passed the AsyncWriter to write back along the servlet's http connection, is called on a Vert.x execute blocking thread
-     * 
-     * 
-     * 
-     * 
      */
    
     public void asyncSend(String route, String message, BiConsumer<AsyncWriter, String> handler) {
-        AsyncServletUtils.send(this.vertx, request, response, route, message, handler);
+        AsyncServletBridge.send(this.vertx, request, response, route, message, handler);
+    }
+    
+    
+     /**
+     * The servlet parameters "route" and "message" are used for the route and message.  The reply
+     * sent back from the EventBus and passed to the handler to be formated and sent through the servlet's httpConnection  
+     * This method starts the Async Context on the servlet and  completes the asyncContext when the handler's
+     * asyncWriter calls writeAndComplete() or complete().
+     * 
+     * <p>example<p>
+     * <pre>
+     *   asyncServletBridge.asyncSend("myRoute", "messageContent", (asyncWriter, reply) -&#62;  {
+     *     String finalOutput = reply + ", modified before sending";
+     *     asyncWriter.writeAndComplete(finalOutput);
+     *   });
+     * </pre>
+     * 
+     *
+     * @param route the route for the EventBus
+     * @param message the message sent along the route
+     * @param handler  passed the AsyncWriter to write back along the servlet's http connection, is called on a Vert.x execute blocking thread
+     */
+
+    public static void asyncPassByParams(Vertx vertx, HttpServletRequest request, HttpServletResponse response) {
+        String route = request.getParameter("route");
+        String message = request.getParameter("message");
+        send(vertx,request, response, route, message, (aWriter, body)-> {aWriter.writeAndComplete(body);});
+    }
+
+    static void send(Vertx vertx, HttpServletRequest request, HttpServletResponse response, String route, String message, BiConsumer<AsyncWriter, String> consumer) {
+        AsyncContext aContext = request.startAsync(request, response);
+        EventBus eb = vertx.eventBus();
+        
+        aContext.start(() -> {
+            eb.request(route, message, ar -> {
+
+                String body = "No Reply";
+                AsyncContext context = aContext;
+
+                if (ar.succeeded()) {
+                    body = ar.result().body().toString();
+                } else {
+                    body = "Error on Event Bus " + ar.toString();
+                }
+
+                try {
+                    final String outputString = body;
+
+                    vertx.executeBlocking(promise -> {
+                        AsyncWriter aWriter = new AsyncWriter(request, response);
+                        consumer.accept(aWriter, outputString);
+                    }, false, res -> {
+
+                    });
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        });
     }
 
 }
