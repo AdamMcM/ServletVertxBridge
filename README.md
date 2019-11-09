@@ -15,7 +15,7 @@ There are two main ways to use this bridge: by using the static mehod asyncPassB
 
 1. asyncPassByParams
 
-Use the static method AsyncServletBridge.asyncPassByParams() to send a route/message from a servlet to a vertx EventBus using the servlet's request parameters "route" and "message".  The reply from the EventBus is sent back to the servlet's HttpConnection unmodified as a string.  calling this method will start the servlet's AsyncContext and the context will be Completed once the response is sent back to the clinent.
+Use the static method AsyncServletBridge.asyncPassByParams() to send a route/message from a servlet to a vertx EventBus using the servlet's request parameters "route" and "message".  The reply from the EventBus is sent back to the servlet's HttpConnection unmodified as a string.  Calling this method will start the servlet's AsyncContext and the context will be completed once the response is sent back to the clinent.
 
 For example, in an async servlet, you could using the following call to 
 
@@ -23,13 +23,9 @@ For example, in an async servlet, you could using the following call to
 AsyncServletBridge.asyncPassByParams(vertx, request, response);
 ```
 
+1. Instance of AsyncServletBridge
 
-
-
-
-
-**AsyncServletBridge **
-
+A more flexible 
 
 ```
 import import org.vertxservlet.*;
