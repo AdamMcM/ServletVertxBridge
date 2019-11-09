@@ -13,7 +13,7 @@ The following code snippets assume a servlet with asyncSupported = true
 
 There are two main ways to use this bridge: by using the static mehod asyncPassByParams() or by building and isntance of AsyncServletBridge. We will consider each method:
 
-1. asyncPassByParams
+**1. asyncPassByParams()**
 
 Use the static method AsyncServletBridge.asyncPassByParams() to send a route/message from a servlet to a vertx EventBus using the servlet's request parameters "route" and "message".  The reply from the EventBus is sent back to the servlet's HttpConnection unmodified as a string.  Calling this method will start the servlet's AsyncContext and the context will be completed once the response is sent back to the clinent.
 
@@ -28,9 +28,9 @@ Vertx vertx = getMyVertxInstance() // get your Vertx instance
 AsyncServletBridge.asyncPassByParams(vertx, servletRequest, servletRequest);
 ```
 
-2. Instance of AsyncServletBridge
+**2. Instance of AsyncServletBridge**
 
-A more flexible way to bridge between a servlet and vertx is to create an instance of AsyncServletBridge. Creating an instance allows one to spcify the route and messsage (as opposed to automatically routed from the servlet request paramters).  It also provides a handler that is called before sending the response back to the client.  This handler provides an opportunity to format/modify the reply sent from the EventBus before sening back to the client.
+A more flexible way to bridge between a servlet and vertx is to create an instance of AsyncServletBridge. Creating an instance allows one to spcify the route and messsage (as opposed to automatically routed from the servlet request paramters).  It also provides a handler that is called before sending the response back to the client.  This handler provides an opportunity to format/modify the reply sent from the EventBus before sending back to the client.
 
 Typical usage might look like this:
 
