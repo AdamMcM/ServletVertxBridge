@@ -25,12 +25,14 @@ import import org.vertxservlet.*;
 ...
 
 Vertx vertx = getMyVertxInstance() // get your Vertx instance
+
+// pass route/message to vertx based on the servlet request paramters "route" and "message"
 AsyncServletBridge.asyncPassByParams(vertx, servletRequest, servletRequest);
 ```
 
 **2. Instance of AsyncServletBridge**
 
-A more flexible way to bridge between a servlet and vertx is to create an instance of AsyncServletBridge. Creating an instance allows one to spcify the route and messsage (as opposed to automatically routed from the servlet request paramters).  It also provides a handler that is called before sending the response back to the client.  This handler provides an opportunity to format/modify the reply sent from the EventBus before sending back to the client.
+A more flexible way to bridge between a servlet and vertx is to create an instance of AsyncServletBridge. Creating an instance allows one to spcify the route and messsage (as opposed to automatically routed from the servlet request paramters).  It also provides a handler that is called before sending the response back to the client.  The handler provides an opportunity to format/modify the EvnentBus's reply before sending back to the client.
 
 Typical usage might look like this:
 
@@ -41,8 +43,10 @@ Typical usage might look like this:
   
   AsyncServletBridge asb = new AsyncServletBridge(vertx, servletRequest, servletResponse);
   asb.asyncSend("myRoute", "messageContent", (asyncWriter, replyBody) -> {  
+  
     // if necessary, format the output before sending back to teh client. 
     String finalOutput = replyBody + ", modified before sending";
+    
     asyncWriter.writeAndComplete(finalOutput);
   });
   
