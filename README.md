@@ -1,49 +1,55 @@
 # AsyncServletVertx-Bridge (not ready for production)
-This repository may be useful when integrating Vert.x (via the EventBus) in an existing servlet-based application.  Http traffic passes through the servlet's http connection.
-
-This packages provides a few small classes and utility methods to pass a message from a servlet to a vert.x EventBus, and then send the EventBus reply back through the servlet's original Http connection.  Using Servlet AsyncContext, this all happens minimizing the number of threads and not keeping a servlet thread blocking the entire time.
+This repository may be useful when integrating Vert.x (via the EventBus) to an existing servlet-based application.  Requests are passed form a servlet, to the Vertx EventBus, and then back through the servlet's http connection. Using Servlet AsyncContext, this all happens minimizing the number of threads and not keeping a servlet thread blocking the entire time.
 
 
-**Dependencies and Usage:** 
+**Dependencies and install:** 
 
-To use these classes, download ServletVertxBridge.jar from the bin directory of this repository:  https://github.com/AdamMcM/AsyncServletVertx-Bridge/blob/master/bin/ServletVertxBridge.jar.  To use the jar file, you will need the minimum Vert.x jars on your class path, along with the libaries typically found in a servlet app.  For example, if you are using tomcat, put ServletVertxBridge.jar into your WEB-INF/lib folder, along with the rest of the Vert.x jar files.
+To use these classes, download ServletVertxBridge.jar from the dist directory of this repository:  https://github.com/AdamMcM/ServletVertxBridge/blob/master/dist/ServletVertxBridge.jar.  To use the jar file, you will need the minimum Vert.x jars on your class path, along with the libaries typically found in a servlet app.  For example, if you are using tomcat, put ServletVertxBridge.jar into your WEB-INF/lib folder, along with the rest of the Vert.x jar files.
 
 
-# Examples
+# Examples and Usage
 
 The following code snippets assume a servlet with asyncSupported = true
 
+There are two main ways to use this bridge: by using the static mehod asyncPassByParams() or by building and isntance of AsyncServletBridge. We will consider each method:
 
+**1. asyncPassByParams()**
 
-**AsyncServletBridge **
+Use the static method AsyncServletBridge.asyncPassByParams() to send a route/message from a servlet to a vertx EventBus using the servlet's request parameters "route" and "message".  The reply from the EventBus is sent back to the servlet's HttpConnection unmodified as a string.  Calling this method will start the servlet's AsyncContext and the context will be completed once the response is sent back to the clinent.
 
+For example, in an async servlet, you could using the following call to 
 
 ```
 import import org.vertxservlet.*;
 
 ...
-...
 
-  // inside a servlet's process method
+Vertx vertx = getMyVertxInstance() // get your Vertx instance
+
+// pass route/message to vertx based on the servlet request paramters "route" and "message"
+AsyncServletBridge.asyncPassByParams(vertx, servletRequest, servletRequest);
+```
+
+**2. Instance of AsyncServletBridge**
+
+A more flexible way to bridge between a servlet and vertx is to create an instance of AsyncServletBridge. Creating an instance allows one to spcify the route and messsage (as opposed to automatically routed from the servlet request paramters).  It also provides a handler that is called before sending the response back to the client.  The handler provides an opportunity to format/modify the EvnentBus's reply before sending back to the client.
+
+Typical usage might look like this:
+
+```
+  import import org.vertxservlet.*;
   
-  Vertx vertx = getMyVertxInstance) // get your Vertx instance
+  Vertx vertx = getMyVertxInstance() // get your Vertx instance
   
   AsyncServletBridge asb = new AsyncServletBridge(vertx, servletRequest, servletResponse);
+  asb.asyncSend("myRoute", "messageContent", (asyncWriter, replyBody) -> {  
   
-  // send a messagse down the Vertx EventBus with a route and message. the EventBus's reply is captured in a BiFunction handler
-  // calling asyncSend will "start" the async Context
-  
-  asb.asyncSend("myRoute", "messageContent", (asyncWriter, replyBody) -> {
-    // this handler is executed with a Vertx execute blocking thread.
-    // asyncWriter is an instance of AsyncWriter. This class writes down through the servlet's orignal httpConnection
-    // the String replyBody is the String sent as a reply on the EventBus route
-   
     // if necessary, format the output before sending back to teh client. 
     String finalOutput = replyBody + ", modified before sending";
     
-    // AsyncWriter.writeAndComplete() will write, flush, and close 
-    // the http connection.  It will also complete the servlet async context
     asyncWriter.writeAndComplete(finalOutput);
   });
   
-```
+  ```
+
+
