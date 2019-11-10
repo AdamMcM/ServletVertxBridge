@@ -21,7 +21,7 @@ public class AsyncServletBridge {
         this.response = response;
     }
 
-    /**
+    /***
      * Send a route and message to the EventBus of this.vertx.  the reply
      * sent back from the EventBus is written back to the http connection of
      * HttpServletReponse.  
@@ -37,7 +37,7 @@ public class AsyncServletBridge {
         });
     }
 
-     /**
+     /***
      * Send a route and message to the EventBus of this.vertx. the reply
      * sent back from the EventBus and passed to the handler to be formated and sent through the servlet's httpConnection  
      * This method starts the Async Context on the servlet and  completes the asyncContext when the handler's
@@ -95,13 +95,13 @@ public class AsyncServletBridge {
         aContext.start(() -> {
             eb.request(route, message, ar -> {
 
-                String body = "No Reply";
+                String body = "";
                 AsyncContext context = aContext;
 
                 if (ar.succeeded()) {
                     body = ar.result().body().toString();
                 } else {
-                    body = "Error on Event Bus " + ar.toString();
+                    body = "AsyncServletBridge.send error on EventBus reply: " + ar.toString();
                 }
 
                 try {
